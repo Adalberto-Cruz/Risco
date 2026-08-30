@@ -4,7 +4,7 @@ Plataforma IoT + IA de monitoramento de risco operacional, desenvolvida para a S
 
 ## Time
 
-| Nome | RM | Papel |
+| Nome | RM |
 |---|---|---|
 | Adalberto Alves Cruz | 574115 |
 | Bruno Henrique Ferreira Ambrosio | 571218 | 
