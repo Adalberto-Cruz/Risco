@@ -6,12 +6,12 @@ Plataforma IoT + IA de monitoramento de risco operacional, desenvolvida para a S
 
 | Nome | RM | Papel |
 |---|---|---|
-| Adalberto Alves Cruz | 574115 | Developer |
-| Bruno Henrique Ferreira Ambrosio | 571218 | Developer |
-| Gustavo da Silva Nascimento | 570821 | Scrum Master |
-| Lucas Maximo dos Santos | 569714 | Developer |
-| Renan de Assis Rodrigues | 574049 | Developer |
-| Tiago Thomaz Cesaro | 569374 | Developer |
+| Adalberto Alves Cruz | 574115 |
+| Bruno Henrique Ferreira Ambrosio | 571218 | 
+| Gustavo da Silva Nascimento | 570821 | 
+| Lucas Maximo dos Santos | 569714 | 
+| Renan de Assis Rodrigues | 574049 | 
+| Tiago Thomaz Cesaro | 569374 | 
 
 ## Visão geral
 
