@@ -1,0 +1,36 @@
+# Credenciais e segredos — NUNCA subir
+local.properties
+*.env
+.env
+
+# Android / Gradle
+*/build/
+build/
+.gradle/
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# PlatformIO (firmware ESP32)
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Python (Lambdas)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Downloads temporários das Lambdas (zips baixados do S3)
+*.zip
+ranking_extraido/
+agregador_extraido/
+processador_extraido/
+
+# Sistema
+Thumbs.db
