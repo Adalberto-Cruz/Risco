@@ -1,0 +1,60 @@
+{
+  "random_forest": {
+    "features_sensor": [
+      "temperatura_c",
+      "umidade_pct",
+      "distancia_cm",
+      "mpu_temp_interna_c",
+      "mpu_vibracao_g",
+      "mpu_inclinacao_graus",
+      "mpu_velocidade_graus_s"
+    ],
+    "turnos": [
+      "trabalhando",
+      "parado"
+    ],
+    "classes": [
+      "alto",
+      "baixo",
+      "medio"
+    ],
+    "idx_alto": 0,
+    "idx_medio": 2
+  },
+  "cox": {
+    "cox_nivel1": {
+      "features": [
+        "score_risco",
+        "valor_pago"
+      ],
+      "c_index": 0.6165
+    },
+    "cox_nivel2": {
+      "features": [
+        "score_risco",
+        "valor_pago",
+        "idade_dias",
+        "dias_desde_manutencao"
+      ],
+      "c_index": 0.6212
+    },
+    "cox_nivel3": {
+      "features": [
+        "score_risco",
+        "valor_pago",
+        "idade_dias",
+        "dias_desde_manutencao",
+        "qtd_manutencoes",
+        "rendimento_pct",
+        "temp_media_regiao",
+        "umidade_media_regiao",
+        "indice_chuva_mm_mes",
+        "dias_extremos_calor_mes",
+        "amplitude_termica_diaria",
+        "chuva_x_manut_atrasada"
+      ],
+      "c_index": 0.7318
+    }
+  },
+  "horizonte_dias": 90
+}
