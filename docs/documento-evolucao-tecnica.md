@@ -6,103 +6,82 @@
 ## 1. Resumo da Sprint
 
 ### O que foi desenvolvido na Sprint 3
-- Firmware ESP32 com leitura de sensores (DHT22, MPU6050, dois VL53L1X ToF) e envio via BLE para o app Android
-- App Android nativo (Kotlin/Jetpack Compose) com: cadastro de equipamento, dashboard visual (cards de resumo, gráfico de pizza por nível de risco, gráfico de barras top 10, lista de equipamentos), integração completa com a AWS
-- Arquitetura AWS ponta a ponta: API Gateway com autenticação JWT (Cognito) → Lambda de classificação de risco (RandomForest) → DynamoDB → Lambda de agregação diária → Lambda de previsão de quebra (Cox Proportional Hazards, com dados de clima via Open-Meteo) → API de ranking consumida pelo dashboard
-- Pipeline de dados de teste (seed) validado ponta a ponta, permitindo demonstrar o fluxo completo mesmo com hardware físico ainda parcial
+* **Firmware ESP32:** Leitura de sensores (DHT22, MPU6050, VL53L1X ToF) e transmissão de telemetria/alertas via BLE para o aplicativo mobile.
+* **App Android Nativo (Kotlin / Jetpack Compose):** Cadastro de equipamentos, visualização de ranking, gráficos de distribuição de risco, cards de perda esperada e recepção de alertas de colisão em tempo real.
+* **Arquitetura AWS Integrada:** Fluxo completo via API Gateway com autenticação JWT (Cognito) → Lambda de classificação (RandomForest) → DynamoDB (`riskai-leituras`) → Lambda de agregação diária → Lambda de previsão de quebra (Cox Proportional Hazards + integração Open-Meteo) → API de ranking consumida pelo App.
+* **Pipeline de Machine Learning:** Camada 1 (Classificação de severidade com RandomForest) e Camada 2 (Sobrevivência/Cox para estimativa de perda financeira em R$) operando em containers Docker (ECR/Lambda).
 
 ### Principais evoluções em relação à Sprint 2
-- Migração do mobile de PWA para app Android nativo, viabilizando BLE em background
-- Implementação da camada de agregação diária de risco, que ainda não existia
-- Integração real da Camada 2 de Machine Learning (sobrevivência/Cox) com dados climáticos externos
-- Dashboard visual completo substituindo protótipo com dados mockados
+* Migração da interface mobile de PWA para aplicativo Android nativo, viabilizando comunicação BLE estável em background.
+* Implementação da camada de agregação diária de telemetria e cálculo de perda esperada (Camada 2 de ML).
+* Integração automatizada com dados meteorológicos históricos via API Open-Meteo.
+* Substituição de protótipos estáticos por dashboard interativo consumindo dados reais da AWS.
 
 ### Percentual aproximado de conclusão
-**~80%** do escopo priorizado para este projeto.
+**~75% a 80%** do escopo priorizado concluído (MVP funcional com fluxo completo de dados, predição e alertas locais).
 
 ### Principais dificuldades encontradas
-- Sensores físicos (MPU6050, sensores de distância) com entrega atrasada, exigindo mock de valores no firmware para não travar o desenvolvimento do restante do pipeline
-- Ambiente AWS Academy Learner Lab com restrições de permissão (sem criação de IAM roles), exigindo adaptação da arquitetura (ex.: Lambda orquestradora usando `lambda:InvokeFunction` em vez de credenciais diretas no app)
-- Incompatibilidade de payload entre app e Lambda de classificação, identificada e corrigida durante testes de integração
+* Atraso no recebimento de sensores físicos finais (MPU6050 e VL53L1X), contornado através de emulação/mock estruturado diretamente no firmware do ESP32 para não travar a integração do app e nuvem.
+* Limitações de permissões do ambiente AWS Academy Learner Lab (ausência de permissão para criação de IAM Roles personalizadas), exigindo o uso da `LabRole` e orquestração via chamadas diretas entre Lambdas.
+* Escassez de dados reais de quebra de maquinário no tempo para a Camada 2 (Cox), exigindo treino inicial com base sintética e validação out-of-fold.
 
 ---
 
 ## 2. Feedback da Sompo
 
 ### Principais comentários recebidos
-- **Pontos positivos**: a equipe já possui um modelo de Machine Learning desenvolvido e está avaliando criticamente se a inclusão de novas variáveis realmente agregaria valor. A Sompo sinalizou que as variáveis atualmente utilizadas podem ser suficientes, evitando a necessidade de buscar dados adicionais sem justificativa clara.
-- **Pontos de atenção**: a apresentação anterior teve excesso de foco em código, reduzindo o espaço dedicado à demonstração do produto e da solução funcionando.
+* **Pontos positivos:** Reconhecimento da maturidade técnica ao já possuir modelos de ML integrados e postura crítica quanto à inclusão de novas variáveis sem justificativa clara de negócio.
+* **Pontos de atenção:** Excesso de tempo dedicado à exposição de código-fonte no pitch anterior, reduzindo o tempo de demonstração da solução prática funcionando.
 
 ### Alterações realizadas a partir do feedback
-- Priorização da demonstração do produto (dashboard, fluxo funcionando ponta a ponta) em vez de detalhes de implementação no próximo pitch
-- Decisão de não buscar novas variáveis externas sem antes avaliar se as atuais já atendem ao objetivo do modelo
+* Redesenho da apresentação e do vídeo de demonstração com foco total no produto funcionando na mão do usuário (Dashboard, App e Alertas).
+* Congelamento da adição de novas bases externas até a validação do impacto das variáveis climáticas e de telemetria atuais.
 
-### Sugestões que não serão implementadas (por ora), com justificativa
-- Busca de novas variáveis de dados externas: adiada até haver avaliação clara de necessidade e impacto real no modelo, conforme orientação da própria Sompo, para evitar complexidade desnecessária
+### Sugestões que não serão implementadas por ora (com justificativa)
+* **Ingestão de novas bases de dados externas complexas:** Adiada para focar no refinamento e assertividade das variáveis já mapeadas (clima e telemetria), conforme recomendação da Sompo.
 
 ---
 
 ## 3. User Stories Trabalhadas
 
-| US | O que foi implementado | Status | Evidência |
-|---|---|---|---|
-| Score de risco por equipamento e tipo de operação (visão Sompo) | Classificação por leitura via RandomForest + previsão de quebra/perda esperada via Cox Proportional Hazards, rodando ponta a ponta na AWS | ✅ Concluído | Dashboard exibindo score e perda esperada por equipamento |
-| Painel de risco por equipamento (visão Cliente) | Dashboard Android com cards de resumo, gráfico de pizza por nível de risco, gráfico de barras (top 10) | ✅ Concluído | Prints/vídeo do dashboard |
-| Ranking de risco por equipamento (visão Gestor de Frota) | Endpoint `GET /ranking` + tela de ranking no app, ordenado por probabilidade de quebra | ✅ Concluído | Prints/vídeo da tela de ranking |
-| Integração com fontes diversas — clima (visão Sompo) | Dados climáticos históricos via Open-Meteo integrados ao modelo de sobrevivência (Camada 2) | 🟡 Parcial | Logs/código da Lambda `riskai-preditor-quebra` |
-| Trilha de auditoria — dados usados, versão do modelo (visão Sompo) | DynamoDB registra leituras, timestamps e probabilidades de cada classificação | 🟡 Parcial | Schema da tabela `riskai-leituras` |
-| Relatórios por fazenda/região/período (visão Cliente) | Geração de relatório em PDF e dashboard de tendências — planejado | 🔴 Pendente | — |
+Abaixo está o mapeamento do backlog priorizado, cobrindo as visões da Seguradora (Sompo), do Segurado (Cliente) e das Personas operacionais.
+
+| ID | User Story (Visão / Persona) | O que foi implementado | Status | Evidência |
+|---|---|---|---|---|
+| **US01** | **Score de Risco e Perda Esperada** *(Sompo / Subscrição)* | Pipeline ML (RandomForest + Cox) rodando em Lambda/Docker gerando probabilidade de falha e Perda Esperada em R$. | ✅ Concluído | Dashboard exibindo score e R$ de perda esperada |
+| **US02** | **Painel de Risco Operacional** *(Cliente / Segurado)* | Dashboard Android nativo com cards consolidados, gráfico de pizza por nível de risco e lista de ativos. | ✅ Concluído | Prints/vídeo do dashboard mobile |
+| **US03** | **Ranking de Risco de Frota** *(Gestor de Frota)* | Endpoint `GET /ranking` e tela de ranking no app, ordenando equipamentos pela severidade do risco. | ✅ Concluído | Print da tela de ranking no App |
+| **US04** | **Alerta de Colisão com Obstáculos** *(Operador de Campo)* | Monitoramento de distância via VL53L1X no firmware ESP32 com disparo de notificação visual/crítica no App via BLE. | ✅ Concluído | Print/vídeo do alerta de proximidade no App |
+| **US05** | **Integração com Clima** *(Sompo / Operador)* | Integração da API Open-Meteo na Lambda `riskai-preditor-quebra` para correlacionar histórico de chuva/temperatura. | ✅ Concluído | Logs e código de integração Open-Meteo |
+| **US06** | **Drivers de Risco / Explicabilidade** *(Sompo / Corretor)* | Extração de *feature importance* do modelo para exibição dos principais fatores agravantes no dashboard. | ✅ Concluído | Print da tela detalhada de fatores de risco |
+| **US07** | **Trilha de Auditoria e Governança** *(Sompo / Auditoria)* | Tabela DynamoDB (`riskai-leituras`) armazenando telemetria bruta, timestamps e saídas de inferência. | 🟡 Parcial | Schema e registros da tabela DynamoDB *(Falta versionamento estrito de modelo)* |
+| **US08** | **Alertas em Tempo de Decisão** *(Operador / Cliente)* | Alertas de colisão ativos; alertas preditivos de terreno/solo crítico ainda em processamento assíncrono. | 🟡 Parcial | Alertas via BLE no App *(Pendente push notification preventiva)* |
+| **US09** | **Detecção de Proximidade de Água** *(Operador / Gestor)* | Identificação de zonas críticas de rios/represas via geofencing (Google Maps SDK pausado temporariamente). | 🔴 Pendente | — (Planejado para Sprint 4) |
+| **US10** | **Recomendações Práticas / Prescritivo** *(Cliente / Corretor)* | Módulo de sugestões operacionais de rotas, velocidade e horários ("o que mudar"). | 🔴 Pendente | — (Planejado para Sprint 4) |
+| **US11** | **Relatórios Consolidados por Período** *(Cliente / Sinistros)* | Emissão de relatórios em PDF com série temporal de sinistros evitados e tendências de risco. | 🔴 Pendente | — (Planejado para Sprint 4) |
+| **US12** | **Configuração de Políticas Internas** *(Gestor de Frota)* | Interface para o gestor definir regras de bloqueio de operação ou limiares de alerta customizados. | 🔴 Pendente | — (Planejado para Sprint 4) |
 
 ---
 
 ## 4. Visão Técnica da Solução
 
-### Tecnologias utilizadas
-- **Hardware/Firmware**: ESP32, C++ (PlatformIO), sensores DHT22, MPU6050, VL53L1X
-- **Mobile**: Kotlin, Jetpack Compose, BLE nativo Android, AWS Amplify (autenticação)
-- **Backend**: AWS Lambda (Python), API Gateway (HTTP API, autenticação JWT via Cognito), DynamoDB
-- **Machine Learning**: scikit-learn (RandomForestClassifier), lifelines (Cox Proportional Hazards), Open-Meteo API (dados climáticos)
+### Tecnologias Utilizadas
+* **Hardware/IoT:** ESP32, C++ (PlatformIO), Sensores DHT22, MPU6050 e VL53L1X.
+* **Mobile:** Kotlin, Jetpack Compose, Android BLE API, AWS Amplify (Cognito Auth).
+* **Backend Cloud:** AWS API Gateway (HTTP API), AWS Lambda (Python 3.11 / Docker), AWS DynamoDB, Amazon ECR.
+* **Machine Learning & Dados:** Scikit-Learn (RandomForestClassifier), Lifelines (Cox Proportional Hazards), Pandas, Open-Meteo API.
 
-### Organização geral do projeto
-Monorepo com quatro grandes áreas: app Android, firmware ESP32, Lambdas AWS (uma pasta por função) e documentação — ver `README.md` na raiz do repositório para a estrutura completa.
-
-### Principais componentes e integração
+### Diagrama de Arquitetura e Integração
 
 ```mermaid
 flowchart LR
-    A[ESP32<br/>sensores + BLE] -->|BLE, JSON| B[App Android]
+    A[ESP32<br/>Sensores + BLE] -->|BLE Telemetria| B[App Android<br/>Kotlin / Jetpack]
     B -->|HTTPS + JWT| C[API Gateway]
     C --> D[Lambda<br/>riskai-classificador]
     D -->|RandomForest| E[(DynamoDB<br/>riskai-leituras)]
     E --> F[Lambda<br/>riskai-agregador-diario]
     F --> G[(DynamoDB<br/>riskai-equipamentos)]
     G --> H[Lambda<br/>riskai-preditor-quebra]
-    H -->|Cox + clima Open-Meteo| G
+    H -->|Cox + Open-Meteo| G
     G --> I[Lambda<br/>riskai-ranking-api]
     I --> B
-```
-
----
-
-## 5. Evidências de Funcionamento
-
-_(seção a completar com prints, vídeo e resultados reais antes da entrega final — telas do app, chamadas de API com sucesso, exemplo de classificação, dashboard atualizado)_
-
----
-
-## 6. Pendências e Próximos Passos
-
-### O que ainda precisa ser desenvolvido
-- Alertas preventivos em tempo de decisão (hoje o sistema é consultivo, não emite alerta ativo)
-- Explicabilidade dos resultados (quais fatores mais pesaram no score de risco)
-- Relatórios por fazenda/região/período com tendência e incidentes evitados (PDF/dashboard)
-- Detecção de proximidade de água / zonas críticas específicas
-- Integração do mapa com marcador arrastável no cadastro de equipamento (Google Maps SDK)
-
-### Principais limitações atuais
-- Sensores físicos (MPU6050, distância) ainda não instalados fisicamente — valores mockados no firmware
-- Modelos de sobrevivência (Cox) treinados com dados sintéticos, por falta de volume real de quebras — não valem para decisão real ainda
-)
-
-### Prioridades para a próxima sprint
-- Priorizar demonstração do produto funcionando (conforme feedback da Sompo) em vez de aprofundar em código durante apresentações
